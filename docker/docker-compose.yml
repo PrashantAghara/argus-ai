@@ -1,0 +1,50 @@
+version: "3.8"
+
+services:
+  otel-demo:
+    image: ghcr.io/open-telemetry/demo:latest
+    container_name: argus-otel-demo
+    ports:
+      - "8080:8080" 
+    environment:l̥
+      - OTEL_COLLECTOR_HOST=otel-collector
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: argus-otel-collector
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml
+    command: ["--config=/etc/otelcol/config.yaml"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: argus-prometheus
+    ports:
+      - "9090:9090"
+
+  loki:
+    image: grafana/loki:latest
+    container_name: argus-loki
+    ports:
+      - "3100:3100"
+
+  tempo:
+    image: grafana/tempo:latest
+    container_name: argus-tempo
+    ports:
+      - "3200:3200"
+      - "4319:4317"
+  grafana:
+    image: grafana/grafana:latest
+    container_name: argus-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
