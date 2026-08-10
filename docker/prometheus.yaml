@@ -6,7 +6,7 @@ scrape_configs:
     static_configs:
       - targets: ["otel-collector:8888"]
 
-  - job_name: "otel-demo"
+  - job_name: "otel-collector-otlp-metrics"
     static_configs:
       - targets: ["otel-collector:8889"]
 

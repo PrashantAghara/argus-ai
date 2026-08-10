@@ -1,14 +1,6 @@
 version: "3.8"
 
 services:
-  otel-demo:
-    image: ghcr.io/open-telemetry/demo:latest
-    container_name: argus-otel-demo
-    ports:
-      - "8080:8080"
-    environment:
-      - OTEL_COLLECTOR_HOST=otel-collector
-
   otel-collector:
     image: otel/opentelemetry-collector-contrib:latest
     container_name: argus-otel-collector
@@ -18,6 +10,48 @@ services:
     ports:
       - "4317:4317"
       - "4318:4318"
+
+  telemetrygen-traces:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    container_name: argus-telemetrygen-traces
+    command:
+      - "traces"
+      - "--otlp-endpoint=otel-collector:4317"
+      - "--otlp-insecure"
+      - "--rate=5"
+      - "--duration=inf"
+      - "--service=argus-demo-service"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  telemetrygen-metrics:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    container_name: argus-telemetrygen-metrics
+    command:
+      - "metrics"
+      - "--otlp-endpoint=otel-collector:4317"
+      - "--otlp-insecure"
+      - "--rate=5"
+      - "--duration=inf"
+      - "--service=argus-demo-service"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
+
+  telemetrygen-logs:
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    container_name: argus-telemetrygen-logs
+    command:
+      - "logs"
+      - "--otlp-endpoint=otel-collector:4317"
+      - "--otlp-insecure"
+      - "--rate=5"
+      - "--duration=inf"
+      - "--service=argus-demo-service"
+    depends_on:
+      - otel-collector
+    restart: unless-stopped
 
   prometheus:
     image: prom/prometheus:latest
