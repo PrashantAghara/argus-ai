@@ -1,8 +1,10 @@
-from fastapi import FastAPI
+from agent.graph import graph
 from config import get_configs
 from connectors.grafana import GrafanaConnector
 from connectors.postgres import PostgresConnector
 from connectors.prometheus import PrometheusConnector
+from fastapi import FastAPI
+from pydantic import BaseModel
 
 app = FastAPI(title="Argus Agent Service")
 
@@ -10,6 +12,10 @@ configs = get_configs()
 prometheus = PrometheusConnector(configs)
 grafana = GrafanaConnector(configs)
 postgres = PostgresConnector(configs)
+
+
+class IncidentRequest(BaseModel):
+    description: str
 
 
 @app.get("/health")
@@ -26,9 +32,16 @@ def health_connectors():
     }
 
 
-@app.get("/agent/analyze")
-def analyze():
-    return {"status": "not_implemented", "note": "LangGraph agent graph comes next"}
+@app.post("/agent/analyze")
+def analyze(request: IncidentRequest):
+    result = graph.invoke({"incident_description": request.description})
+    return {
+        "relevant_agents": result.get("relevant_agents"),
+        "apm_findings": result.get("apm_findings"),
+        "db_findings": result.get("db_findings"),
+        "infra_findings": result.get("infra_findings"),
+        "final_report": result.get("final_report"),
+    }
 
 
 def main():

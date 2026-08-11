@@ -32,7 +32,7 @@ class PostgresConnector:
                 ORDER BY total_exec_time DESC
                 LIMIT %s;
                 """,
-                (limit),
+                (limit,),
             )
             columns = ["query", "calls", "total_exec_time", "mean_exec_time"]
             return [dict(zip(columns, row)) for row in cur.fetchall()]
